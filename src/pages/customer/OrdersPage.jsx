@@ -27,10 +27,31 @@ export default function OrdersPage() {
     }
 
     function subscribeToOrders() {
-      const channel = supabase.channel('customer-orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
-        (payload) => { setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)); toast.success(`Order updated: ${ORDER_STATUSES[payload.new.status]?.label || payload.new.status}`); }
-      ).subscribe();
-      return () => supabase.removeChannel(channel);
+      const channel = supabase.channel(`order-updates-${user.id}`)
+        .on('postgres_changes', 
+          { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'orders',
+            filter: `customer_id=eq.${user.id}` 
+          },
+          (payload) => {
+            console.log('Order update received:', payload);
+            setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o));
+            const statusLabel = ORDER_STATUSES[payload.new.status]?.label || payload.new.status;
+            toast.success(`Order updated: ${statusLabel}`, {
+              icon: '📦',
+              duration: 4000
+            });
+          }
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+        });
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
 
     if (supabase) {
@@ -45,7 +66,24 @@ export default function OrdersPage() {
 
   return (
     <div style={{ maxWidth: '700px', margin: '0 auto', padding: '24px 16px 100px' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '24px' }}>My Orders 📦</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: c('#0F172A', 'white'), margin: 0 }}>My Orders 📦</h1>
+        <button 
+          onClick={() => {
+            const fetchOrders = async () => {
+              setLoading(true);
+              const { data } = await supabase.from('orders').select('*, shops(name, logo_url), order_items(*)').eq('customer_id', user.id).order('created_at', { ascending: false });
+              setOrders(data || []);
+              setLoading(false);
+              toast.success('Orders refreshed');
+            };
+            fetchOrders();
+          }}
+          style={{ padding: '8px 12px', borderRadius: '10px', background: c('#F1F5F9', 'rgba(255,255,255,0.05)'), border: 'none', cursor: 'pointer', color: '#6C63FF', fontWeight: 600, fontSize: '13px' }}
+        >
+          Refresh
+        </button>
+      </div>
 
       {orders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>

@@ -43,13 +43,28 @@ export default function ShopkeeperOrdersPage() {
   }, [shop]);
 
   async function updateOrderStatus(orderId, status, customerId) {
-    await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-    await supabase.from('notifications').insert({
-      user_id: customerId, title: `Order ${ORDER_STATUSES[status]?.label}`,
-      message: `Your order status has been updated to ${status}`, type: 'order_update',
-    });
-    toast.success(`Order ${status}`);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+      
+      await supabase.from('notifications').insert({
+        user_id: customerId,
+        title: `Order ${ORDER_STATUSES[status]?.label}`,
+        message: `Your order status has been updated to ${status}`,
+        type: 'order_update',
+      });
+
+      toast.success(`Order ${ORDER_STATUSES[status]?.label}`);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      toast.error('Failed to update order status');
+    }
   }
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
