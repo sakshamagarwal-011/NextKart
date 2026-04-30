@@ -3,18 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleGoogleLogin() {
     setLoading(true);
-    const { error } = await signIn({ email, password });
-    setLoading(false);
-    if (!error) navigate('/home');
+    await signInWithGoogle();
+    // No set loading false needed, as it redirects
   }
 
   return (
@@ -35,40 +30,14 @@ export default function LoginPage() {
               <span style={{ color: 'white', fontWeight: 800, fontSize: '20px' }}>NK</span>
             </div>
             <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '4px' }}>Welcome Back</h1>
-            <p style={{ color: '#64748B', fontSize: '14px' }}>Sign in to your NearKart account</p>
+            <p style={{ color: '#64748B', fontSize: '14px' }}>Sign in securely with Google</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* Email */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#CBD5E1', marginBottom: '8px' }}>Email</label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@email.com" required
-                style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = '#6C63FF'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-              />
-            </div>
-
-            {/* Password */}
-            <div style={{ marginBottom: '28px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#CBD5E1', marginBottom: '8px' }}>Password</label>
-              <input
-                type="password" value={password} onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••" required
-                style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = '#6C63FF'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-              />
-            </div>
-
-            {/* Submit */}
-            <button type="submit" disabled={loading}
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #6C63FF, #5B52E5)', color: 'white', fontWeight: 700, fontSize: '15px', border: 'none', cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(108,99,255,0.3)' }}>
-              {loading ? '⏳ Signing in...' : 'Sign In →'}
-            </button>
-          </form>
+          <button onClick={handleGoogleLogin} disabled={loading}
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'white', color: '#0F172A', fontWeight: 700, fontSize: '15px', border: 'none', cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: '20px', height: '20px' }} />
+            {loading ? 'Connecting...' : 'Continue with Google'}
+          </button>
 
           <p style={{ textAlign: 'center', color: '#64748B', fontSize: '14px', marginTop: '24px' }}>
             Don't have an account?{' '}

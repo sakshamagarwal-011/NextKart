@@ -51,9 +51,26 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase
         .from('profiles').select('*').eq('id', userId).single();
       if (error && error.code !== 'PGRST116') throw error;
-      setProfile(data);
+      let profileData = data;
 
-      if (data?.role === 'shopkeeper') {
+      // If no profile exists (e.g., first-time Google login), create one automatically
+      if (!profileData) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const newProfile = {
+            id: userId,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.email.split('@')[0],
+            role: 'customer',
+          };
+          const { error: insertError } = await supabase.from('profiles').insert(newProfile);
+          if (!insertError) profileData = newProfile;
+        }
+      }
+
+      setProfile(profileData);
+
+      if (profileData?.role === 'shopkeeper') {
         const { data: shopData } = await supabase
           .from('shops').select('*').eq('owner_id', userId).single();
         setShop(shopData);
@@ -105,6 +122,21 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function signInWithGoogle() {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
   async function signOut() {
     if (supabase) await supabase.auth.signOut();
     setUser(null); setProfile(null); setShop(null);
@@ -145,7 +177,7 @@ export function AuthProvider({ children }) {
   }
 
   const value = {
-    user, profile, shop, loading, signUp, signIn, signOut,
+    user, profile, shop, loading, signUp, signIn, signInWithGoogle, signOut,
     updateProfile, updateShop, becomeShopkeeper,
     refreshProfile: () => user && fetchProfile(user.id),
     isShopkeeper: profile?.role === 'shopkeeper',
