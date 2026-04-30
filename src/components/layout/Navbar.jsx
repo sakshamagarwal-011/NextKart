@@ -8,7 +8,6 @@ export default function Navbar() {
   const { profile, signOut, isShopkeeper } = useAuth();
   const { totalItems } = useCart();
   const { isDark, toggleTheme } = useTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();

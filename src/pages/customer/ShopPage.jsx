@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -24,12 +24,14 @@ export default function ShopPage() {
 
   const c = (light, dark) => isDark ? dark : light;
 
-  useEffect(() => { if (supabase) { fetchShop(); fetchProducts(); fetchReviews(); checkFavorite(); } }, [id]);
+  useEffect(() => {
+    async function fetchShop() { const { data } = await supabase.from('shops').select('*').eq('id', id).single(); setShop(data); }
+    async function fetchProducts() { setLoading(true); const { data } = await supabase.from('products').select('*').eq('shop_id', id).order('name'); setProducts(data || []); setLoading(false); }
+    async function fetchReviews() { const { data } = await supabase.from('reviews').select('*, profiles(full_name)').eq('shop_id', id).order('created_at', { ascending: false }).limit(10); setReviews(data || []); }
+    async function checkFavorite() { if (!user) return; const { data } = await supabase.from('favorites').select('*').eq('customer_id', user.id).eq('shop_id', id).single(); setIsFavorite(!!data); }
 
-  async function fetchShop() { const { data } = await supabase.from('shops').select('*').eq('id', id).single(); setShop(data); }
-  async function fetchProducts() { setLoading(true); const { data } = await supabase.from('products').select('*').eq('shop_id', id).order('name'); setProducts(data || []); setLoading(false); }
-  async function fetchReviews() { const { data } = await supabase.from('reviews').select('*, profiles(full_name)').eq('shop_id', id).order('created_at', { ascending: false }).limit(10); setReviews(data || []); }
-  async function checkFavorite() { if (!user) return; const { data } = await supabase.from('favorites').select('*').eq('customer_id', user.id).eq('shop_id', id).single(); setIsFavorite(!!data); }
+    if (supabase) { fetchShop(); fetchProducts(); fetchReviews(); checkFavorite(); }
+  }, [id, user]);
 
   async function toggleFavorite() {
     if (!user) return toast.error('Please login first');
@@ -39,7 +41,6 @@ export default function ShopPage() {
 
   function getCartQty(productId) { return items.find(i => i.id === productId)?.quantity || 0; }
 
-  const categories = ['all', ...new Set(products.map(p => p.category_id).filter(Boolean))];
   const filtered = products.filter(p => { if (selectedCategory !== 'all' && p.category_id !== selectedCategory) return false; if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false; return true; });
 
   if (loading && !shop) return <Spinner />;

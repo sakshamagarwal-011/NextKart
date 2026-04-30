@@ -15,37 +15,38 @@ export default function AnalyticsPage() {
 
   const c = (light, dark) => isDark ? dark : light;
 
-  useEffect(() => { if (shop) fetchAnalytics(); }, [shop]);
+  useEffect(() => {
+    async function fetchAnalytics() {
+      setLoading(true);
+      const { data: orders } = await supabase.from('orders').select('*, order_items(*)').eq('shop_id', shop.id);
+      const allOrders = orders || [];
 
-  async function fetchAnalytics() {
-    setLoading(true);
-    const { data: orders } = await supabase.from('orders').select('*, order_items(*)').eq('shop_id', shop.id);
-    const allOrders = orders || [];
+      // Orders over last 7 days
+      const last7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(); date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayOrders = allOrders.filter(o => o.created_at?.startsWith(dateStr));
+        const revenue = dayOrders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0);
+        last7.push({ date: date.toLocaleDateString('en-IN', { weekday: 'short' }), orders: dayOrders.length, revenue });
+      }
 
-    // Orders over last 7 days
-    const last7 = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(); date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayOrders = allOrders.filter(o => o.created_at?.startsWith(dateStr));
-      const revenue = dayOrders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0);
-      last7.push({ date: date.toLocaleDateString('en-IN', { weekday: 'short' }), orders: dayOrders.length, revenue });
-    }
-
-    // Top products
-    const productMap = {};
-    allOrders.forEach(order => {
-      order.order_items?.forEach(item => {
-        if (!productMap[item.product_name]) productMap[item.product_name] = { name: item.product_name, count: 0, revenue: 0 };
-        productMap[item.product_name].count += item.quantity;
-        productMap[item.product_name].revenue += item.product_price * item.quantity;
+      // Top products
+      const productMap = {};
+      allOrders.forEach(order => {
+        order.order_items?.forEach(item => {
+          if (!productMap[item.product_name]) productMap[item.product_name] = { name: item.product_name, count: 0, revenue: 0 };
+          productMap[item.product_name].count += item.quantity;
+          productMap[item.product_name].revenue += item.product_price * item.quantity;
+        });
       });
-    });
-    const topProducts = Object.values(productMap).sort((a, b) => b.count - a.count).slice(0, 5);
+      const topProducts = Object.values(productMap).sort((a, b) => b.count - a.count).slice(0, 5);
 
-    setData({ orders: allOrders, topProducts, chartData: last7 });
-    setLoading(false);
-  }
+      setData({ orders: allOrders, topProducts, chartData: last7 });
+      setLoading(false);
+    }
+    if (shop) fetchAnalytics();
+  }, [shop]);
 
   if (loading) return <Spinner />;
 

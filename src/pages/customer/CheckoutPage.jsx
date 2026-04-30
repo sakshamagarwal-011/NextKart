@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatPrice, generateWhatsAppLink, generateOrderNumber } from '../../lib/utils';
+import { formatPrice, generateOrderNumber } from '../../lib/utils';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {

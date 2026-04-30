@@ -24,6 +24,7 @@ export default function ProductsPage() {
 
   const c = (light, dark) => isDark ? dark : light;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (shop) fetchProducts(); }, [shop]);
 
   async function fetchProducts() {

@@ -15,24 +15,26 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (shop) { fetchStats(); fetchRecentOrders(); } }, [shop]);
+  useEffect(() => {
+    async function fetchStats() {
+      const [ordersRes, productsRes] = await Promise.all([
+        supabase.from('orders').select('*').eq('shop_id', shop.id),
+        supabase.from('products').select('id', { count: 'exact' }).eq('shop_id', shop.id),
+      ]);
+      const orders = ordersRes.data || [];
+      const revenue = orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0);
+      const pending = orders.filter(o => o.status === 'pending').length;
+      setStats({ orders: orders.length, revenue, pending, products: productsRes.count || 0 });
+    }
 
-  async function fetchStats() {
-    const [ordersRes, productsRes] = await Promise.all([
-      supabase.from('orders').select('*').eq('shop_id', shop.id),
-      supabase.from('products').select('id', { count: 'exact' }).eq('shop_id', shop.id),
-    ]);
-    const orders = ordersRes.data || [];
-    const revenue = orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0);
-    const pending = orders.filter(o => o.status === 'pending').length;
-    setStats({ orders: orders.length, revenue, pending, products: productsRes.count || 0 });
-  }
+    async function fetchRecentOrders() {
+      const { data } = await supabase.from('orders').select('*, profiles!orders_customer_id_fkey(full_name)').eq('shop_id', shop.id).order('created_at', { ascending: false }).limit(5);
+      setRecentOrders(data || []);
+      setLoading(false);
+    }
 
-  async function fetchRecentOrders() {
-    const { data } = await supabase.from('orders').select('*, profiles!orders_customer_id_fkey(full_name)').eq('shop_id', shop.id).order('created_at', { ascending: false }).limit(5);
-    setRecentOrders(data || []);
-    setLoading(false);
-  }
+    if (shop) { fetchStats(); fetchRecentOrders(); }
+  }, [shop]);
 
   const c = (light, dark) => isDark ? dark : light;
 

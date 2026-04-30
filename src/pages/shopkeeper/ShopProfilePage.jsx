@@ -16,7 +16,7 @@ export default function ShopProfilePage() {
     close_time: shop?.close_time || '21:00', is_open: shop?.is_open ?? true,
     latitude: shop?.latitude || '', longitude: shop?.longitude || '',
   });
-  const [uploading, setUploading] = useState(false);
+  const [, setUploading] = useState(false);
 
   const c = (light, dark) => isDark ? dark : light;
   const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' };

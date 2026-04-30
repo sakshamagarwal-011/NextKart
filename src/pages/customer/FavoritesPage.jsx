@@ -12,14 +12,15 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
   const c = (light, dark) => isDark ? dark : light;
 
-  useEffect(() => { if (supabase) fetchFavorites(); }, []);
-
-  async function fetchFavorites() {
-    setLoading(true);
-    const { data } = await supabase.from('favorites').select('*, shops(*)').eq('customer_id', user.id);
-    setShops(data?.map(f => f.shops).filter(Boolean) || []);
-    setLoading(false);
-  }
+  useEffect(() => {
+    async function fetchFavorites() {
+      setLoading(true);
+      const { data } = await supabase.from('favorites').select('*, shops(*)').eq('customer_id', user.id);
+      setShops(data?.map(f => f.shops).filter(Boolean) || []);
+      setLoading(false);
+    }
+    if (supabase) fetchFavorites();
+  }, [user.id]);
 
   if (loading) return <Spinner />;
 

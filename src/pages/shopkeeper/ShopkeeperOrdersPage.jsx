@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X, Truck, ChevronDown, ChevronUp, Filter, ShoppingBag } from 'lucide-react';
+import { Check, X, Truck, ChevronDown, ChevronUp, ShoppingBag } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -18,24 +18,29 @@ export default function ShopkeeperOrdersPage() {
 
   const c = (light, dark) => isDark ? dark : light;
 
-  useEffect(() => { if (shop) { fetchOrders(); subscribeOrders(); } }, [shop]);
+  useEffect(() => {
+    async function fetchOrders() {
+      setLoading(true);
+      const { data } = await supabase.from('orders')
+        .select('*, profiles!orders_customer_id_fkey(full_name, phone, area), order_items(*)')
+        .eq('shop_id', shop.id).order('created_at', { ascending: false });
+      setOrders(data || []);
+      setLoading(false);
+    }
 
-  async function fetchOrders() {
-    setLoading(true);
-    const { data } = await supabase.from('orders')
-      .select('*, profiles!orders_customer_id_fkey(full_name, phone, area), order_items(*)')
-      .eq('shop_id', shop.id).order('created_at', { ascending: false });
-    setOrders(data || []);
-    setLoading(false);
-  }
+    function subscribeOrders() {
+      const channel = supabase.channel('shop-orders').on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `shop_id=eq.${shop.id}` },
+        () => { fetchOrders(); toast.success('New order received! 🎉'); new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play().catch(() => {}); }
+      ).subscribe();
+      return () => supabase.removeChannel(channel);
+    }
 
-  function subscribeOrders() {
-    const channel = supabase.channel('shop-orders').on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'orders', filter: `shop_id=eq.${shop.id}` },
-      () => { fetchOrders(); toast.success('New order received! 🎉'); new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play().catch(() => {}); }
-    ).subscribe();
-    return () => supabase.removeChannel(channel);
-  }
+    if (shop) {
+      fetchOrders();
+      return subscribeOrders();
+    }
+  }, [shop]);
 
   async function updateOrderStatus(orderId, status, customerId) {
     await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);

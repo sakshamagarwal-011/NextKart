@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
 
 function ChangeMapCenter({ center }) {
   const map = useMap();
-  useEffect(() => { if (center) map.setView(center, 13); }, [center]);
+  useEffect(() => { if (center) map.setView(center, 13); }, [center, map]);
   return null;
 }
 
@@ -32,8 +32,9 @@ export default function HomePage() {
   const [selectedArea, setSelectedArea] = useState(profile?.area || '');
   const [viewMode, setViewMode] = useState('grid');
   const [userLocation, setUserLocation] = useState(null);
-  const [showAreaDropdown, setShowAreaDropdown] = useState(false);
+  const [, setShowAreaDropdown] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchShops(); getUserLocation(); }, [selectedArea]);
 
   async function getUserLocation() {
@@ -122,6 +123,7 @@ export default function HomePage() {
             <option value="">All Areas</option>
             {AREAS.map(a => <option key={a} value={a} />)}
           </datalist>
+        </div>
         </div>
 
         {/* View Toggle */}

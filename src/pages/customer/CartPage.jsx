@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { formatPrice } from '../../lib/utils';
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, totalAmount, clearCart } = useCart();
+  const { items, updateQuantity, totalAmount, clearCart } = useCart();
   const { isDark } = useTheme();
   const c = (light, dark) => isDark ? dark : light;
 

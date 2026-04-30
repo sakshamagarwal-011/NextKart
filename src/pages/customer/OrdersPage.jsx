@@ -18,21 +18,26 @@ export default function OrdersPage() {
 
   const c = (light, dark) => isDark ? dark : light;
 
-  useEffect(() => { if (supabase) { fetchOrders(); subscribeToOrders(); } }, []);
+  useEffect(() => {
+    async function fetchOrders() {
+      setLoading(true);
+      const { data } = await supabase.from('orders').select('*, shops(name, logo_url), order_items(*)').eq('customer_id', user.id).order('created_at', { ascending: false });
+      setOrders(data || []);
+      setLoading(false);
+    }
 
-  async function fetchOrders() {
-    setLoading(true);
-    const { data } = await supabase.from('orders').select('*, shops(name, logo_url), order_items(*)').eq('customer_id', user.id).order('created_at', { ascending: false });
-    setOrders(data || []);
-    setLoading(false);
-  }
+    function subscribeToOrders() {
+      const channel = supabase.channel('customer-orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
+        (payload) => { setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)); toast.success(`Order updated: ${ORDER_STATUSES[payload.new.status]?.label || payload.new.status}`); }
+      ).subscribe();
+      return () => supabase.removeChannel(channel);
+    }
 
-  function subscribeToOrders() {
-    const channel = supabase.channel('customer-orders').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
-      (payload) => { setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o)); toast.success(`Order updated: ${ORDER_STATUSES[payload.new.status]?.label || payload.new.status}`); }
-    ).subscribe();
-    return () => supabase.removeChannel(channel);
-  }
+    if (supabase) {
+      fetchOrders();
+      return subscribeToOrders();
+    }
+  }, [user.id]);
 
   const statusColors = { pending: '#F59E0B', accepted: '#6C63FF', preparing: '#8B5CF6', delivered: '#10B981', rejected: '#EF4444', cancelled: '#94A3B8' };
 
