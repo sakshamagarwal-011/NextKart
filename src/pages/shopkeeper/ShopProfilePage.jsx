@@ -45,9 +45,26 @@ export default function ShopProfilePage() {
   async function detectShopLocation() {
     try {
       const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000 }));
-      handleChange('latitude', pos.coords.latitude);
-      handleChange('longitude', pos.coords.longitude);
-      toast.success('Location detected! Save to apply.');
+      const { latitude, longitude } = pos.coords;
+      handleChange('latitude', latitude);
+      handleChange('longitude', longitude);
+      
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`);
+        const data = await res.json();
+        const locality = data.address?.suburb || data.address?.neighbourhood || data.address?.city_district || data.address?.county || '';
+        
+        if (locality) {
+          const match = AREAS.find(a => locality.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(locality.toLowerCase()));
+          handleChange('area', match || locality);
+          toast.success(`Detected: ${match || locality} 📍. Save to apply.`);
+          return;
+        }
+      } catch (e) {
+        console.error('Reverse geocoding failed', e);
+      }
+      
+      toast.success('Coordinates detected! Save to apply.');
     } catch { toast.error('Could not detect location'); }
   }
 

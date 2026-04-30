@@ -50,7 +50,7 @@ export default function HomePage() {
     setLoading(true);
     try {
       let query = supabase.from('shops').select('*');
-      if (selectedArea) query = query.eq('area', selectedArea);
+      if (selectedArea) query = query.ilike('area', `%${selectedArea}%`);
       const { data, error } = await query.order('rating', { ascending: false });
       if (error) throw error;
       setShops(data || []);
