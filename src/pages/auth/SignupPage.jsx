@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function SignupPage() {
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const role = queryParams.get('role') === 'shopkeeper' ? 'shopkeeper' : 'customer';
 
   async function handleGoogleSignup() {
     setLoading(true);
+    localStorage.setItem('intended_role', role);
     await signInWithGoogle();
     // No set loading false needed, as it redirects
   }
@@ -25,7 +29,12 @@ export default function SignupPage() {
         <div style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '36px 32px', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
 
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '6px' }}>Join NearKart</h1>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: role === 'shopkeeper' ? 'rgba(0,217,166,0.15)' : 'rgba(108,99,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>
+              {role === 'shopkeeper' ? '🏪' : '🛒'}
+            </div>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '6px' }}>
+              Join as {role === 'shopkeeper' ? 'Shopkeeper' : 'User'}
+            </h1>
             <p style={{ color: '#64748B', fontSize: '14px' }}>Sign up securely with your Google account</p>
           </div>
 
@@ -35,16 +44,18 @@ export default function SignupPage() {
             {loading ? 'Connecting...' : 'Continue with Google'}
           </button>
 
-          <div style={{ marginTop: '24px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-            <p style={{ color: '#94A3B8', fontSize: '13px', margin: 0 }}>
-              <strong>Want to be a Shopkeeper?</strong><br />
-              Sign in with Google first, then you can upgrade your account to a Shopkeeper from your Profile page!
-            </p>
-          </div>
+          {role === 'customer' && (
+            <div style={{ marginTop: '24px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+              <p style={{ color: '#94A3B8', fontSize: '13px', margin: 0 }}>
+                <strong>Want to sell products?</strong><br />
+                <Link to="/signup?role=shopkeeper" style={{ color: '#6C63FF', fontWeight: 700, textDecoration: 'none' }}>Sign up as a Shopkeeper instead</Link>
+              </p>
+            </div>
+          )}
 
           <p style={{ textAlign: 'center', color: '#64748B', fontSize: '14px', marginTop: '24px' }}>
             Already have an account?{' '}
-            <Link to="/login" style={{ color: '#6C63FF', fontWeight: 700, textDecoration: 'none' }}>Sign In</Link>
+            <Link to={`/login?role=${role}`} style={{ color: '#6C63FF', fontWeight: 700, textDecoration: 'none' }}>Sign In</Link>
           </p>
         </div>
       </div>

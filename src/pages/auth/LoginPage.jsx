@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const role = queryParams.get('role') === 'shopkeeper' ? 'shopkeeper' : 'customer';
 
   async function handleGoogleLogin() {
     setLoading(true);
+    localStorage.setItem('intended_role', role);
     await signInWithGoogle();
     // No set loading false needed, as it redirects
   }
@@ -26,10 +30,12 @@ export default function LoginPage() {
         <div style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '40px 32px', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, #6C63FF, #4F46B8)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(108,99,255,0.3)' }}>
-              <span style={{ color: 'white', fontWeight: 800, fontSize: '20px' }}>NK</span>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: role === 'shopkeeper' ? 'rgba(0,217,166,0.15)' : 'rgba(108,99,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>
+              {role === 'shopkeeper' ? '🏪' : '🛒'}
             </div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '4px' }}>Welcome Back</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'white', marginBottom: '4px' }}>
+              Welcome Back, {role === 'shopkeeper' ? 'Shopkeeper' : 'User'}
+            </h1>
             <p style={{ color: '#64748B', fontSize: '14px' }}>Sign in securely with Google</p>
           </div>
 
@@ -41,7 +47,7 @@ export default function LoginPage() {
 
           <p style={{ textAlign: 'center', color: '#64748B', fontSize: '14px', marginTop: '24px' }}>
             Don't have an account?{' '}
-            <Link to="/signup" style={{ color: '#6C63FF', fontWeight: 700, textDecoration: 'none' }}>Sign Up</Link>
+            <Link to={`/signup?role=${role}`} style={{ color: '#6C63FF', fontWeight: 700, textDecoration: 'none' }}>Sign Up</Link>
           </p>
         </div>
       </div>

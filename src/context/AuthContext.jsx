@@ -57,16 +57,30 @@ export function AuthProvider({ children }) {
       if (!profileData) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          const intendedRole = localStorage.getItem('intended_role') || 'customer';
           const newProfile = {
             id: userId,
             email: user.email,
             full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-            role: 'customer',
+            role: intendedRole,
             area: 'Not set'
           };
           const { error: insertError } = await supabase.from('profiles').insert(newProfile);
-          if (!insertError) profileData = newProfile;
-          else console.error('Error creating profile:', insertError);
+          if (!insertError) {
+            profileData = newProfile;
+            if (intendedRole === 'shopkeeper') {
+              // Auto-create an empty shop for them
+              await supabase.from('shops').insert({
+                owner_id: userId,
+                name: `${newProfile.full_name}'s Shop`,
+                area: 'Not set',
+                phone: ''
+              });
+            }
+          } else {
+            console.error('Error creating profile:', insertError);
+          }
+          localStorage.removeItem('intended_role');
         }
       }
 

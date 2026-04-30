@@ -47,25 +47,49 @@ export default function LandingPage() {
           Discover nearby shops, browse products, and get everything delivered to your doorstep. Support local businesses with every order.
         </p>
 
-        {/* Role Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', maxWidth: '640px', margin: '0 auto' }}>
+        {/* Role Cards - 4 Options */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
+          
+          {/* Sign Up Customer */}
           <Link to="/signup?role=customer" style={cardStyle}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(108,99,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(108,99,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', fontSize: '28px' }}>🛒</div>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>I want to Order</h3>
-            <p style={{ color: '#64748B', fontSize: '14px', lineHeight: 1.6, marginBottom: '16px' }}>Browse local shops near you, add items to cart, and get them delivered.</p>
-            <span style={{ color: '#818CF8', fontSize: '14px', fontWeight: 700 }}>Start Shopping →</span>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(108,99,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', fontSize: '24px' }}>🆕 🛒</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>New User?</h3>
+            <p style={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px' }}>Create a new account to browse local shops and order.</p>
+            <span style={{ color: '#818CF8', fontSize: '13px', fontWeight: 700 }}>Sign up as User →</span>
           </Link>
 
+          {/* Sign Up Shopkeeper */}
           <Link to="/signup?role=shopkeeper" style={cardStyle}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,217,166,0.08)'; e.currentTarget.style.borderColor = 'rgba(0,217,166,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(0,217,166,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', fontSize: '28px' }}>🏪</div>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>I want to List my Shop</h3>
-            <p style={{ color: '#64748B', fontSize: '14px', lineHeight: 1.6, marginBottom: '16px' }}>Create your shop online, list products, and receive orders from customers.</p>
-            <span style={{ color: '#00D9A6', fontSize: '14px', fontWeight: 700 }}>Start Selling →</span>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0,217,166,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', fontSize: '24px' }}>🆕 🏪</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>New Shopkeeper?</h3>
+            <p style={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px' }}>Create an online store to receive orders from customers.</p>
+            <span style={{ color: '#00D9A6', fontSize: '13px', fontWeight: 700 }}>Sign up as Shopkeeper →</span>
           </Link>
+
+          {/* Sign In Customer */}
+          <Link to="/login?role=customer" style={cardStyle}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(108,99,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(108,99,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', fontSize: '24px' }}>👋 🛒</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Returning User?</h3>
+            <p style={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px' }}>Log back in to track your orders and discover shops.</p>
+            <span style={{ color: '#818CF8', fontSize: '13px', fontWeight: 700 }}>Sign in as User →</span>
+          </Link>
+
+          {/* Sign In Shopkeeper */}
+          <Link to="/login?role=shopkeeper" style={cardStyle}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,217,166,0.08)'; e.currentTarget.style.borderColor = 'rgba(0,217,166,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(0,217,166,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', fontSize: '24px' }}>👋 🏪</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Returning Shopkeeper?</h3>
+            <p style={{ color: '#64748B', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px' }}>Manage your products, orders, and shop analytics.</p>
+            <span style={{ color: '#00D9A6', fontSize: '13px', fontWeight: 700 }}>Sign in as Shopkeeper →</span>
+          </Link>
+
         </div>
 
         {/* Features */}
