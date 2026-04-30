@@ -45,9 +45,11 @@ export default function SignupPage() {
       if (match) {
         setArea(match);
         toast.success(`Detected: ${match} 📍`);
+      } else if (locality) {
+        setArea(locality);
+        toast.success(`Detected: ${locality} 📍`);
       } else {
-        toast.success(`Detected: ${locality || 'Unknown'}. Please select manually.`);
-        setArea(AREAS[0]);
+        toast.error('Could not detect specific area. Please type manually.');
       }
     } catch (err) {
       toast.error('Location access denied. Please select area manually.');
