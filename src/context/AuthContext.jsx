@@ -62,9 +62,11 @@ export function AuthProvider({ children }) {
             email: user.email,
             full_name: user.user_metadata?.full_name || user.email.split('@')[0],
             role: 'customer',
+            area: 'Not set'
           };
           const { error: insertError } = await supabase.from('profiles').insert(newProfile);
           if (!insertError) profileData = newProfile;
+          else console.error('Error creating profile:', insertError);
         }
       }
 
