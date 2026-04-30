@@ -45,6 +45,30 @@ export default function HomePage() {
     }
   }
 
+  async function detectAndFilterArea() {
+    const loadingToast = toast.loading('Detecting location...');
+    try {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 }));
+      const { latitude, longitude } = pos.coords;
+      setUserLocation({ lat: latitude, lng: longitude });
+      
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`);
+      const data = await res.json();
+      const locality = data.address?.suburb || data.address?.neighbourhood || data.address?.city_district || data.address?.county || '';
+      
+      if (locality) {
+        const match = AREAS.find(a => locality.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(locality.toLowerCase()));
+        const finalArea = match || locality;
+        handleAreaChange(finalArea);
+        toast.success(`Found you in ${finalArea}!`, { id: loadingToast });
+      } else {
+        toast.error('Could not determine area name', { id: loadingToast });
+      }
+    } catch {
+      toast.error('Location access denied or failed', { id: loadingToast });
+    }
+  }
+
   async function fetchShops() {
     if (!supabase) { setLoading(false); return; }
     setLoading(true);
@@ -86,10 +110,14 @@ export default function HomePage() {
           style={{ flex: '1 1 200px', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
 
         {/* Area Dropdown */}
-        <div style={{ position: 'relative' }}>
-          <input type="text" placeholder="📍 Type area or 'All'" value={selectedArea} onChange={e => handleAreaChange(e.target.value)}
-            list="home-area-suggestions"
-            style={{ width: '200px', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={detectAndFilterArea} style={{ padding: '0 16px', borderRadius: '12px', background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }} title="Auto detect my location">
+            📍 Detect
+          </button>
+          <div style={{ position: 'relative' }}>
+            <input type="text" placeholder="Type area or 'All'" value={selectedArea} onChange={e => handleAreaChange(e.target.value)}
+              list="home-area-suggestions"
+              style={{ width: '200px', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
           <datalist id="home-area-suggestions">
             <option value="">All Areas</option>
             {AREAS.map(a => <option key={a} value={a} />)}

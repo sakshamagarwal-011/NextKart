@@ -35,6 +35,7 @@ export default function Navbar() {
     { path: '/dashboard/products', label: '📦 Products' },
     { path: '/dashboard/orders', label: '🧾 Orders' },
     { path: '/dashboard/analytics', label: '📈 Analytics' },
+    { path: '/home', label: '🛍️ Marketplace' },
   ];
 
   const links = isShopkeeper ? shopkeeperLinks : customerLinks;
