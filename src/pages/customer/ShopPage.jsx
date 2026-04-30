@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 export default function ShopPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { items, addItem, updateQuantity } = useCart();
+  const { items, addItem, updateQuantity, shopInfo } = useCart();
   const { isDark } = useTheme();
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
@@ -79,7 +79,7 @@ export default function ShopPage() {
                 {isFavorite ? '❤️' : '🤍'}
               </button>
               {shop.whatsapp_number && (
-                <a href={generateWhatsAppLink(shop.whatsapp_number, shop.name, items.filter(i => i.shopId === shop.id).map(i => ({ product_name: i.name, quantity: i.quantity, product_price: i.price })), 0)}
+                <a href={generateWhatsAppLink(shop.whatsapp_number, shop.name, (shopInfo?.id === shop.id ? items : []).map(i => ({ product_name: i.name, quantity: i.quantity, product_price: i.price })), 0)}
                   target="_blank" rel="noopener noreferrer" style={{ padding: '10px', borderRadius: '12px', background: 'rgba(37,211,102,0.8)', backdropFilter: 'blur(8px)', border: 'none', cursor: 'pointer', fontSize: '18px', textDecoration: 'none', display: 'flex' }}>
                   💬
                 </a>
@@ -134,14 +134,14 @@ export default function ShopPage() {
                     </div>
                     {product.in_stock && (
                       qty > 0 ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: c('rgba(108,99,255,0.08)', 'rgba(108,99,255,0.15)'), borderRadius: '10px', padding: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: c('rgba(108,99,255,0.08)', 'rgba(108,99,255,0.15)'), borderRadius: '10px', padding: '4px', opacity: isOpen ? 1 : 0.5 }}>
                           <button onClick={() => updateQuantity(product.id, qty - 1)} style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#6C63FF', fontWeight: 700, fontSize: '16px' }}>−</button>
                           <span style={{ width: '20px', textAlign: 'center', fontWeight: 800, color: '#6C63FF', fontSize: '14px' }}>{qty}</span>
-                          <button onClick={() => updateQuantity(product.id, qty + 1)} style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#6C63FF', fontWeight: 700, fontSize: '16px' }}>+</button>
+                          <button onClick={() => isOpen ? updateQuantity(product.id, qty + 1) : toast.error('Shop is currently closed')} style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'none', border: 'none', cursor: isOpen ? 'pointer' : 'not-allowed', color: '#6C63FF', fontWeight: 700, fontSize: '16px' }}>+</button>
                         </div>
                       ) : (
-                        <button onClick={() => addItem(product, shop)} style={{ padding: '8px 16px', borderRadius: '10px', background: '#6C63FF', color: 'white', fontWeight: 700, fontSize: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(108,99,255,0.3)' }}>
-                          + Add
+                        <button onClick={() => isOpen ? addItem(product, shop) : toast.error('Shop is currently closed')} style={{ padding: '8px 16px', borderRadius: '10px', background: isOpen ? '#6C63FF' : '#94A3B8', color: 'white', fontWeight: 700, fontSize: '12px', border: 'none', cursor: isOpen ? 'pointer' : 'not-allowed', boxShadow: isOpen ? '0 4px 12px rgba(108,99,255,0.3)' : 'none' }}>
+                          {isOpen ? '+ Add' : 'Closed'}
                         </button>
                       )
                     )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -9,15 +9,28 @@ import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
   const { user, profile } = useAuth();
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, shopInfo, totalAmount, clearCart } = useCart();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [address, setAddress] = useState(profile?.area || '');
   const [note, setNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
+  const [shopStatus, setShopStatus] = useState(null);
 
   const c = (light, dark) => isDark ? dark : light;
+
+  useEffect(() => {
+    async function checkShopStatus() {
+      if (!shopInfo?.id) return;
+      const { data } = await supabase.from('shops').select('open_time, close_time, is_open').eq('id', shopInfo.id).single();
+      if (data) {
+        const { isShopOpen } = await import('../../lib/utils');
+        setShopStatus({ isOpen: isShopOpen(data.open_time, data.close_time) && data.is_open });
+      }
+    }
+    checkShopStatus();
+  }, [shopInfo?.id]);
 
   const inputStyle = {
     width: '100%', padding: '14px 16px', borderRadius: '12px',
@@ -29,10 +42,13 @@ export default function CheckoutPage() {
   async function handlePlaceOrder() {
     if (!address.trim()) return toast.error('Please enter delivery address');
     if (items.length === 0) return toast.error('Cart is empty');
+    const shopId = shopInfo?.id || items[0]?.shopId;
+    if (!shopId) return toast.error('Shop information is missing. Please clear cart and try again.');
+    if (shopStatus && !shopStatus.isOpen) return toast.error('Sorry, the shop is currently closed. You cannot place an order right now.');
+
     setLoading(true);
     try {
       const orderNumber = generateOrderNumber();
-      const shopId = items[0]?.shopId;
       const { data: order, error } = await supabase.from('orders').insert({
         order_number: orderNumber, customer_id: user.id, shop_id: shopId,
         payment_method: paymentMethod, total_amount: totalAmount,
