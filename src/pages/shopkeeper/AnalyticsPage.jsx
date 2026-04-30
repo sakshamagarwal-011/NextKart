@@ -3,14 +3,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, ShoppingBag, Star, Package } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatPrice } from '../../lib/utils';
-import Card from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
 
 export default function AnalyticsPage() {
   const { shop } = useAuth();
+  const { isDark } = useTheme();
   const [data, setData] = useState({ orders: [], topProducts: [], chartData: [] });
   const [loading, setLoading] = useState(true);
+
+  const c = (light, dark) => isDark ? dark : light;
 
   useEffect(() => { if (shop) fetchAnalytics(); }, [shop]);
 
@@ -49,80 +52,86 @@ export default function AnalyticsPage() {
   const totalRevenue = data.orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0);
   const avgOrderValue = data.orders.length ? totalRevenue / data.orders.filter(o => o.status === 'delivered').length || 0 : 0;
 
+  const statCards = [
+    { icon: ShoppingBag, label: 'Total Orders', value: data.orders.length, color: '#6C63FF' },
+    { icon: TrendingUp, label: 'Total Revenue', value: formatPrice(totalRevenue), color: '#10B981' },
+    { icon: Package, label: 'Avg Order', value: formatPrice(avgOrderValue), color: '#8B5CF6' },
+    { icon: Star, label: 'Rating', value: shop?.rating > 0 ? Number(shop.rating).toFixed(1) : 'N/A', color: '#F59E0B' },
+  ];
+
+  const cardStyle = { padding: '24px', borderRadius: '20px', background: c('white', 'rgba(255,255,255,0.03)'), border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, marginBottom: '24px' };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6">
-      <h1 className="text-2xl font-bold text-dark-900 dark:text-white mb-6">Analytics 📊</h1>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px 100px' }}>
+      <h1 style={{ fontSize: '28px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '24px' }}>Analytics 📊</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { icon: ShoppingBag, label: 'Total Orders', value: data.orders.length, color: 'text-primary-500' },
-          { icon: TrendingUp, label: 'Total Revenue', value: formatPrice(totalRevenue), color: 'text-success-500' },
-          { icon: Package, label: 'Avg Order', value: formatPrice(avgOrderValue), color: 'text-purple-500' },
-          { icon: Star, label: 'Rating', value: shop?.rating > 0 ? Number(shop.rating).toFixed(1) : 'N/A', color: 'text-amber-500' },
-        ].map((stat, i) => (
-          <Card key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
-            <stat.icon size={20} className={`${stat.color} mb-2`} />
-            <p className="text-2xl font-bold text-dark-900 dark:text-white">{stat.value}</p>
-            <p className="text-xs text-dark-500 mt-0.5">{stat.label}</p>
-          </Card>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+        {statCards.map((stat, i) => (
+          <div key={i} style={{ ...cardStyle, marginBottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <stat.icon size={24} color={stat.color} style={{ marginBottom: '12px' }} />
+            <p style={{ fontSize: '24px', fontWeight: 800, color: c('#0F172A', 'white'), margin: '0 0 4px' }}>{stat.value}</p>
+            <p style={{ fontSize: '13px', color: '#64748B', margin: 0, fontWeight: 500 }}>{stat.label}</p>
+          </div>
         ))}
       </div>
 
-      {/* Orders Chart */}
-      <Card className="mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4">Orders — Last 7 Days</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-dark-200)" />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--color-dark-400)' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'var(--color-dark-400)' }} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
-              <Bar dataKey="orders" fill="var(--color-primary-500)" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+        {/* Orders Chart */}
+        <div style={cardStyle}>
+          <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '20px' }}>Orders — Last 7 Days</h2>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={c('#E2E8F0', '#334155')} vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: c('white', '#1E293B'), color: c('#0F172A', 'white'), boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
+                <Bar dataKey="orders" fill="#6C63FF" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </Card>
 
-      {/* Revenue Chart */}
-      <Card className="mb-8 animate-fade-in" style={{ animationDelay: '300ms' }}>
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4">Revenue — Last 7 Days</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-dark-200)" />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--color-dark-400)' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'var(--color-dark-400)' }} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
-              <Line type="monotone" dataKey="revenue" stroke="var(--color-success-500)" strokeWidth={3} dot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Revenue Chart */}
+        <div style={cardStyle}>
+          <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '20px' }}>Revenue — Last 7 Days</h2>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data.chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={c('#E2E8F0', '#334155')} vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', background: c('white', '#1E293B'), color: c('#0F172A', 'white'), boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
+                <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3} dot={{ r: 5, fill: '#10B981', strokeWidth: 2, stroke: c('white', '#0F172A') }} activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </Card>
+      </div>
 
       {/* Top Products */}
-      <Card className="animate-fade-in" style={{ animationDelay: '400ms' }}>
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4">Top Products</h2>
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '20px' }}>Top Products</h2>
         {data.topProducts.length === 0 ? (
-          <p className="text-dark-500 text-sm text-center py-4">No sales data yet.</p>
+          <p style={{ color: '#64748B', fontSize: '14px', textAlign: 'center', padding: '20px 0', margin: 0 }}>No sales data yet.</p>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {data.topProducts.map((product, i) => (
-              <div key={i} className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-xs font-bold text-primary-500">#{i + 1}</span>
-                  <span className="text-sm font-medium text-dark-900 dark:text-white">{product.name}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: i === data.topProducts.length - 1 ? 'none' : `1px solid ${c('#F1F5F9', 'rgba(255,255,255,0.05)')}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(108,99,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#6C63FF' }}>#{i + 1}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: c('#0F172A', 'white') }}>{product.name}</span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-dark-900 dark:text-white">{product.count} sold</p>
-                  <p className="text-xs text-dark-400">{formatPrice(product.revenue)}</p>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 800, color: c('#0F172A', 'white'), margin: '0 0 2px' }}>{product.count} sold</p>
+                  <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>{formatPrice(product.revenue)}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

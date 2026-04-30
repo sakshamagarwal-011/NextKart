@@ -87,24 +87,13 @@ export default function HomePage() {
 
         {/* Area Dropdown */}
         <div style={{ position: 'relative' }}>
-          <button onClick={() => setShowAreaDropdown(!showAreaDropdown)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#334155', '#CBD5E1'), fontSize: '14px', fontWeight: 600, cursor: 'pointer', minWidth: '170px' }}>
-            📍 {selectedArea || 'All Areas'} {showAreaDropdown ? '▲' : '▼'}
-          </button>
-          {showAreaDropdown && (
-            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', width: '220px', borderRadius: '14px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, background: c('white', '#0F172A'), boxShadow: '0 16px 40px rgba(0,0,0,0.25)', zIndex: 20, maxHeight: '280px', overflowY: 'auto' }}>
-              <button onClick={() => handleAreaChange('')}
-                style={{ width: '100%', padding: '10px 16px', textAlign: 'left', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', color: !selectedArea ? '#6C63FF' : c('#334155', '#CBD5E1'), fontWeight: !selectedArea ? 700 : 400 }}>
-                🌐 All Areas
-              </button>
-              {AREAS.map(a => (
-                <button key={a} onClick={() => handleAreaChange(a)}
-                  style={{ width: '100%', padding: '10px 16px', textAlign: 'left', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', color: selectedArea === a ? '#6C63FF' : c('#334155', '#CBD5E1'), fontWeight: selectedArea === a ? 700 : 400 }}>
-                  📍 {a}
-                </button>
-              ))}
-            </div>
-          )}
+          <input type="text" placeholder="📍 Type area or 'All'" value={selectedArea} onChange={e => handleAreaChange(e.target.value)}
+            list="home-area-suggestions"
+            style={{ width: '200px', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+          <datalist id="home-area-suggestions">
+            <option value="">All Areas</option>
+            {AREAS.map(a => <option key={a} value={a} />)}
+          </datalist>
         </div>
 
         {/* View Toggle */}

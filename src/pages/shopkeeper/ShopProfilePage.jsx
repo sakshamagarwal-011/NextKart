@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { MapPin, Phone, Clock, CreditCard, MessageCircle, Upload, Camera } from 'lucide-react';
+import { MapPin, Clock, Upload, Camera } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AREAS } from '../../lib/constants';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 
 export default function ShopProfilePage() {
   const { shop, updateShop } = useAuth();
+  const { isDark } = useTheme();
   const [form, setForm] = useState({
     name: shop?.name || '', description: shop?.description || '', address: shop?.address || '',
     area: shop?.area || '', phone: shop?.phone || '', upi_id: shop?.upi_id || '',
@@ -17,6 +17,11 @@ export default function ShopProfilePage() {
     latitude: shop?.latitude || '', longitude: shop?.longitude || '',
   });
   const [uploading, setUploading] = useState(false);
+
+  const c = (light, dark) => isDark ? dark : light;
+  const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontSize: '13px', fontWeight: 600, color: c('#334155', '#CBD5E1'), marginBottom: '6px' };
+  const cardStyle = { padding: '24px', borderRadius: '20px', background: c('white', 'rgba(255,255,255,0.03)'), border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, marginBottom: '24px' };
 
   function handleChange(field, value) { setForm(prev => ({ ...prev, [field]: value })); }
 
@@ -47,36 +52,36 @@ export default function ShopProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6">
-      <h1 className="text-2xl font-bold text-dark-900 dark:text-white mb-6">Shop Settings ⚙️</h1>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px 100px' }}>
+      <h1 style={{ fontSize: '28px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '24px' }}>Shop Settings ⚙️</h1>
 
       {/* Images */}
-      <Card className="mb-6">
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4">Shop Images</h2>
-        <div className="grid grid-cols-2 gap-4">
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '16px' }}>Shop Images</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <p className="text-sm text-dark-500 mb-2">Logo</p>
-            <label className="block w-24 h-24 rounded-xl bg-dark-100 dark:bg-dark-700 border-2 border-dashed border-dark-300 dark:border-dark-600 cursor-pointer hover:border-primary-500 transition-colors overflow-hidden">
-              {shop?.logo_url ? <img src={shop.logo_url} alt="" className="w-full h-full object-cover" /> :
-                <div className="w-full h-full flex items-center justify-center"><Camera size={24} className="text-dark-400" /></div>}
-              <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'logo')} />
+            <p style={{ ...labelStyle, marginBottom: '8px' }}>Logo</p>
+            <label style={{ display: 'block', width: '96px', height: '96px', borderRadius: '16px', border: `2px dashed ${c('#CBD5E1', '#475569')}`, background: c('#F8FAFC', 'rgba(255,255,255,0.02)'), cursor: 'pointer', overflow: 'hidden' }}>
+              {shop?.logo_url ? <img src={shop.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={24} color="#94A3B8" /></div>}
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'logo')} />
             </label>
           </div>
           <div>
-            <p className="text-sm text-dark-500 mb-2">Cover</p>
-            <label className="block h-24 rounded-xl bg-dark-100 dark:bg-dark-700 border-2 border-dashed border-dark-300 dark:border-dark-600 cursor-pointer hover:border-primary-500 transition-colors overflow-hidden">
-              {shop?.cover_url ? <img src={shop.cover_url} alt="" className="w-full h-full object-cover" /> :
-                <div className="w-full h-full flex items-center justify-center"><Upload size={24} className="text-dark-400" /></div>}
-              <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'cover')} />
+            <p style={{ ...labelStyle, marginBottom: '8px' }}>Cover</p>
+            <label style={{ display: 'block', height: '96px', borderRadius: '16px', border: `2px dashed ${c('#CBD5E1', '#475569')}`, background: c('#F8FAFC', 'rgba(255,255,255,0.02)'), cursor: 'pointer', overflow: 'hidden' }}>
+              {shop?.cover_url ? <img src={shop.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Upload size={24} color="#94A3B8" /></div>}
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && uploadImage(e.target.files[0], 'cover')} />
             </label>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Details */}
-      <Card className="mb-6">
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4">Shop Details</h2>
-        <div className="space-y-4">
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '16px' }}>Shop Details</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {[{ label: 'Shop Name', field: 'name', type: 'text', placeholder: 'Your shop name' },
             { label: 'Description', field: 'description', type: 'textarea', placeholder: 'Tell customers about your shop...' },
             { label: 'Address', field: 'address', type: 'text', placeholder: 'Full address' },
@@ -85,59 +90,61 @@ export default function ShopProfilePage() {
             { label: 'WhatsApp Number', field: 'whatsapp_number', type: 'tel', placeholder: 'WhatsApp number' },
           ].map(({ label, field, type, placeholder }) => (
             <div key={field}>
-              <label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">{label}</label>
+              <label style={labelStyle}>{label}</label>
               {type === 'textarea' ? (
-                <textarea value={form[field]} onChange={e => handleChange(field, e.target.value)} rows={2} placeholder={placeholder}
-                  className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white resize-none" />
+                <textarea value={form[field]} onChange={e => handleChange(field, e.target.value)} rows={2} placeholder={placeholder} style={{ ...inputStyle, resize: 'none' }} />
               ) : (
-                <input type={type} value={form[field]} onChange={e => handleChange(field, e.target.value)} placeholder={placeholder}
-                  className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white" />
+                <input type={type} value={form[field]} onChange={e => handleChange(field, e.target.value)} placeholder={placeholder} style={inputStyle} />
               )}
             </div>
           ))}
 
           <div>
-            <label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Area</label>
-            <select value={form.area} onChange={e => handleChange('area', e.target.value)}
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white">
-              {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
+            <label style={labelStyle}>Area</label>
+            <input type="text" value={form.area} onChange={e => handleChange('area', e.target.value)}
+              list="shop-area-suggestions" placeholder="Type your area..." style={inputStyle} />
+            <datalist id="shop-area-suggestions">
+              {AREAS.map(a => <option key={a} value={a} />)}
+            </datalist>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Location */}
-      <Card className="mb-6">
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4 flex items-center gap-2"><MapPin size={18} className="text-primary-500" />Map Location</h2>
-        <p className="text-dark-500 text-sm mb-3">Set your shop location so customers can find you on the map.</p>
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <input type="number" step="any" value={form.latitude} onChange={e => handleChange('latitude', e.target.value)} placeholder="Latitude"
-            className="rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-2.5 text-sm outline-none focus:border-primary-500 dark:text-white" />
-          <input type="number" step="any" value={form.longitude} onChange={e => handleChange('longitude', e.target.value)} placeholder="Longitude"
-            className="rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-2.5 text-sm outline-none focus:border-primary-500 dark:text-white" />
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MapPin size={18} color="#6C63FF" /> Map Location
+        </h2>
+        <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '16px' }}>Set your shop location so customers can find you on the map.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <input type="number" step="any" value={form.latitude} onChange={e => handleChange('latitude', e.target.value)} placeholder="Latitude" style={inputStyle} />
+          <input type="number" step="any" value={form.longitude} onChange={e => handleChange('longitude', e.target.value)} placeholder="Longitude" style={inputStyle} />
         </div>
-        <Button variant="outline" size="sm" onClick={detectShopLocation}>📍 Auto Detect My Location</Button>
-      </Card>
+        <button onClick={detectShopLocation} style={{ padding: '10px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+          📍 Auto Detect My Location
+        </button>
+      </div>
 
       {/* Hours & Status */}
-      <Card className="mb-6">
-        <h2 className="font-bold text-dark-900 dark:text-white mb-4 flex items-center gap-2"><Clock size={18} className="text-primary-500" />Operating Hours</h2>
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div><label className="text-xs text-dark-500 block mb-1">Opens at</label>
-            <input type="time" value={form.open_time} onChange={e => handleChange('open_time', e.target.value)}
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-2.5 text-sm outline-none focus:border-primary-500 dark:text-white" /></div>
-          <div><label className="text-xs text-dark-500 block mb-1">Closes at</label>
-            <input type="time" value={form.close_time} onChange={e => handleChange('close_time', e.target.value)}
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-2.5 text-sm outline-none focus:border-primary-500 dark:text-white" /></div>
+      <div style={cardStyle}>
+        <h2 style={{ fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Clock size={18} color="#6C63FF" /> Operating Hours
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+          <div><label style={{ ...labelStyle, fontSize: '12px', color: '#64748B' }}>Opens at</label>
+            <input type="time" value={form.open_time} onChange={e => handleChange('open_time', e.target.value)} style={inputStyle} /></div>
+          <div><label style={{ ...labelStyle, fontSize: '12px', color: '#64748B' }}>Closes at</label>
+            <input type="time" value={form.close_time} onChange={e => handleChange('close_time', e.target.value)} style={inputStyle} /></div>
         </div>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" checked={form.is_open} onChange={e => handleChange('is_open', e.target.checked)}
-            className="w-5 h-5 rounded-md accent-primary-500" />
-          <span className="text-sm font-medium text-dark-700 dark:text-dark-300">Shop is currently open</span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={form.is_open} onChange={e => handleChange('is_open', e.target.checked)} style={{ width: '20px', height: '20px', accentColor: '#6C63FF' }} />
+          <span style={{ fontSize: '14px', fontWeight: 600, color: c('#334155', '#CBD5E1') }}>Shop is currently open</span>
         </label>
-      </Card>
+      </div>
 
-      <Button onClick={handleSave} className="w-full" size="lg">Save Changes ✅</Button>
+      <button onClick={handleSave} style={{ width: '100%', padding: '16px', borderRadius: '16px', background: '#6C63FF', color: 'white', fontWeight: 800, fontSize: '16px', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(108,99,255,0.3)' }}>
+        Save Changes ✅
+      </button>
     </div>
   );
 }

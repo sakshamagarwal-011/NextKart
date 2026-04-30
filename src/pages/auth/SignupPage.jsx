@@ -166,11 +166,14 @@ export default function SignupPage() {
                 <div style={{ marginBottom: '24px' }}>
                   <label style={labelStyle}>Area</label>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <select value={area} onChange={e => setArea(e.target.value)} required
-                      style={{ ...inputStyle, flex: 1, cursor: 'pointer', appearance: 'none' }}>
-                      <option value="" style={{ background: '#0F172A' }}>Select your area</option>
-                      {AREAS.map(a => <option key={a} value={a} style={{ background: '#0F172A' }}>{a}</option>)}
-                    </select>
+                    <input type="text" value={area} onChange={e => setArea(e.target.value)} required
+                      list="area-suggestions" placeholder="Type your area..."
+                      style={{ ...inputStyle, flex: 1 }}
+                      onFocus={e => e.target.style.borderColor = '#6C63FF'}
+                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                    <datalist id="area-suggestions">
+                      {AREAS.map(a => <option key={a} value={a} />)}
+                    </datalist>
                     <button type="button" onClick={detectLocation} disabled={detectingLocation}
                       style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#CBD5E1', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 600, transition: 'all 0.2s' }}>
                       {detectingLocation ? '📡 ...' : '📍 Detect'}

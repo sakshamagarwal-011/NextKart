@@ -44,9 +44,12 @@ export default function ProfilePage() {
             <div><label style={labelStyle}>Full Name</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={inputStyle} /></div>
             <div><label style={labelStyle}>Phone</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle} /></div>
             <div><label style={labelStyle}>Area</label>
-              <select value={area} onChange={e => setArea(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-                {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-              </select></div>
+              <input type="text" value={area} onChange={e => setArea(e.target.value)}
+                list="profile-area-suggestions" placeholder="Type your area..." style={inputStyle} />
+              <datalist id="profile-area-suggestions">
+                {AREAS.map(a => <option key={a} value={a} />)}
+              </datalist>
+            </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={handleSave} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: '#6C63FF', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}>Save</button>
               <button onClick={() => setEditing(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: c('#F1F5F9', 'rgba(255,255,255,0.06)'), color: c('#334155', '#CBD5E1'), fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}>Cancel</button>

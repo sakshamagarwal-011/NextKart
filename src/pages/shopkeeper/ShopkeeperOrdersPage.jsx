@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Check, X, Truck, ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { Check, X, Truck, ChevronDown, ChevronUp, Filter, ShoppingBag } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatPrice, getTimeAgo } from '../../lib/utils';
 import { ORDER_STATUSES } from '../../lib/constants';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
-import EmptyState from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
 
 export default function ShopkeeperOrdersPage() {
-  const { shop, user } = useAuth();
+  const { shop } = useAuth();
+  const { isDark } = useTheme();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [expandedOrder, setExpandedOrder] = useState(null);
+
+  const c = (light, dark) => isDark ? dark : light;
 
   useEffect(() => { if (shop) { fetchOrders(); subscribeOrders(); } }, [shop]);
 
@@ -53,81 +53,106 @@ export default function ShopkeeperOrdersPage() {
   if (loading) return <Spinner />;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6">
-      <h1 className="text-2xl font-bold text-dark-900 dark:text-white mb-6">Orders 📋</h1>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px 100px' }}>
+      <h1 style={{ fontSize: '28px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '24px' }}>Orders 📋</h1>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
         {filterTabs.map(tab => (
           <button key={tab} onClick={() => setFilter(tab)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap cursor-pointer transition-all capitalize
-              ${filter === tab ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25' : 'bg-dark-100 dark:bg-dark-800 text-dark-600 dark:text-dark-400 hover:bg-dark-200'}`}>
-            {tab} {tab !== 'all' && <span className="ml-1 opacity-70">({orders.filter(o => o.status === tab).length})</span>}
+            style={{
+              padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s', textTransform: 'capitalize', border: 'none',
+              background: filter === tab ? '#6C63FF' : c('#F1F5F9', 'rgba(255,255,255,0.05)'),
+              color: filter === tab ? 'white' : c('#475569', '#94A3B8'),
+              boxShadow: filter === tab ? '0 4px 12px rgba(108,99,255,0.3)' : 'none'
+            }}>
+            {tab} {tab !== 'all' && <span style={{ opacity: 0.7, marginLeft: '4px' }}>({orders.filter(o => o.status === tab).length})</span>}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="No orders" description={filter === 'all' ? 'No orders yet.' : `No ${filter} orders.`} />
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: c('white', 'rgba(255,255,255,0.03)'), borderRadius: '20px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}` }}>
+          <ShoppingBag size={48} color="#6C63FF" style={{ margin: '0 auto 16px', opacity: 0.8 }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: c('#1E293B', 'white'), margin: '0 0 8px' }}>No orders</h3>
+          <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>{filter === 'all' ? 'No orders yet.' : `No ${filter} orders.`}</p>
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filtered.map(order => (
-            <Card key={order.id} className="animate-fade-in">
-              <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
+            <div key={order.id} style={{ padding: '20px', borderRadius: '16px', background: c('white', 'rgba(255,255,255,0.03)'), border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-dark-900 dark:text-white text-sm">{order.order_number}</p>
-                    <Badge status={order.status}>{ORDER_STATUSES[order.status]?.label}</Badge>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <p style={{ fontWeight: 800, color: c('#0F172A', 'white'), fontSize: '15px', margin: 0 }}>{order.order_number}</p>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, background: ORDER_STATUSES[order.status]?.color?.includes('success') ? 'rgba(16,185,129,0.1)' : ORDER_STATUSES[order.status]?.color?.includes('warning') ? 'rgba(245,158,11,0.1)' : ORDER_STATUSES[order.status]?.color?.includes('accent') ? 'rgba(239,68,68,0.1)' : 'rgba(108,99,255,0.1)', color: ORDER_STATUSES[order.status]?.color?.includes('success') ? '#10B981' : ORDER_STATUSES[order.status]?.color?.includes('warning') ? '#F59E0B' : ORDER_STATUSES[order.status]?.color?.includes('accent') ? '#EF4444' : '#6C63FF' }}>
+                      {ORDER_STATUSES[order.status]?.icon} {ORDER_STATUSES[order.status]?.label}
+                    </span>
                   </div>
-                  <p className="text-dark-400 text-xs mt-0.5">{order.profiles?.full_name} · {getTimeAgo(order.created_at)}</p>
+                  <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>{order.profiles?.full_name} · {getTimeAgo(order.created_at)}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary-500">{formatPrice(order.total_amount)}</span>
-                  {expandedOrder === order.id ? <ChevronUp size={16} className="text-dark-400" /> : <ChevronDown size={16} className="text-dark-400" />}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontWeight: 800, color: '#6C63FF', fontSize: '16px' }}>{formatPrice(order.total_amount)}</span>
+                  {expandedOrder === order.id ? <ChevronUp size={20} color="#94A3B8" /> : <ChevronDown size={20} color="#94A3B8" />}
                 </div>
               </div>
 
               {expandedOrder === order.id && (
-                <div className="mt-4 pt-4 border-t border-dark-100 dark:border-dark-700 animate-fade-in">
+                <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: `1px solid ${c('#F1F5F9', 'rgba(255,255,255,0.05)')}` }}>
                   {/* Customer Info */}
-                  <div className="bg-dark-50 dark:bg-dark-900 rounded-xl p-3 mb-3">
-                    <p className="text-xs text-dark-400 mb-1">Customer</p>
-                    <p className="text-sm font-semibold text-dark-900 dark:text-white">{order.profiles?.full_name}</p>
-                    {order.profiles?.phone && <p className="text-xs text-dark-500">📞 {order.profiles.phone}</p>}
-                    {order.delivery_address && <p className="text-xs text-dark-500 mt-1">📍 {order.delivery_address}</p>}
-                    {order.note && <p className="text-xs text-dark-500 mt-1">📝 {order.note}</p>}
+                  <div style={{ background: c('#F8FAFC', 'rgba(255,255,255,0.02)'), borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                    <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 4px', fontWeight: 600, textTransform: 'uppercase' }}>Customer Details</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, color: c('#0F172A', 'white'), margin: '0 0 4px' }}>{order.profiles?.full_name}</p>
+                    {order.profiles?.phone && <p style={{ fontSize: '13px', color: c('#475569', '#94A3B8'), margin: '0 0 4px' }}>📞 {order.profiles.phone}</p>}
+                    {order.delivery_address && <p style={{ fontSize: '13px', color: c('#475569', '#94A3B8'), margin: '0 0 4px' }}>📍 {order.delivery_address}</p>}
+                    {order.note && <p style={{ fontSize: '13px', color: c('#475569', '#94A3B8'), margin: '0', fontStyle: 'italic' }}>📝 "{order.note}"</p>}
                   </div>
 
                   {/* Items */}
-                  <div className="space-y-1.5 mb-3">
-                    {order.order_items?.map(item => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span className="text-dark-600 dark:text-dark-400">{item.product_name} × {item.quantity}</span>
-                        <span className="text-dark-700 dark:text-dark-300">{formatPrice(item.product_price * item.quantity)}</span>
-                      </div>
-                    ))}
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 8px', fontWeight: 600, textTransform: 'uppercase' }}>Items</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {order.order_items?.map(item => (
+                        <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                          <span style={{ color: c('#334155', '#CBD5E1') }}>{item.product_name} × <span style={{ fontWeight: 600 }}>{item.quantity}</span></span>
+                          <span style={{ fontWeight: 600, color: c('#0F172A', 'white') }}>{formatPrice(item.product_price * item.quantity)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm mb-1"><span className="text-dark-400">Payment</span><span className="font-medium uppercase text-dark-700 dark:text-dark-300">{order.payment_method} · {order.payment_status}</span></div>
-                  <div className="flex justify-between font-bold text-dark-900 dark:text-white mb-4"><span>Total</span><span className="text-primary-500">{formatPrice(order.total_amount)}</span></div>
+
+                  {/* Totals & Payment */}
+                  <div style={{ borderTop: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, paddingTop: '12px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}><span style={{ color: '#64748B' }}>Payment</span><span style={{ fontWeight: 600, color: c('#334155', '#CBD5E1'), textTransform: 'uppercase' }}>{order.payment_method} · {order.payment_status}</span></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 800, color: c('#0F172A', 'white') }}><span>Total Amount</span><span style={{ color: '#6C63FF' }}>{formatPrice(order.total_amount)}</span></div>
+                  </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 flex-wrap">
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     {order.status === 'pending' && (
                       <>
-                        <Button size="sm" variant="success" icon={Check} onClick={() => updateOrderStatus(order.id, 'accepted', order.customer_id)}>Accept</Button>
-                        <Button size="sm" variant="danger" icon={X} onClick={() => updateOrderStatus(order.id, 'rejected', order.customer_id)}>Reject</Button>
+                        <button onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, 'accepted', order.customer_id); }} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: '#10B981', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <Check size={18} /> Accept Order
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, 'rejected', order.customer_id); }} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <X size={18} /> Reject
+                        </button>
                       </>
                     )}
                     {order.status === 'accepted' && (
-                      <Button size="sm" icon={Check} onClick={() => updateOrderStatus(order.id, 'preparing', order.customer_id)}>Start Preparing</Button>
+                      <button onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, 'preparing', order.customer_id); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: '#F59E0B', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Check size={18} /> Start Preparing
+                      </button>
                     )}
                     {order.status === 'preparing' && (
-                      <Button size="sm" variant="success" icon={Truck} onClick={() => updateOrderStatus(order.id, 'delivered', order.customer_id)}>Mark Delivered</Button>
+                      <button onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, 'delivered', order.customer_id); }} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: '#6C63FF', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Truck size={18} /> Mark as Delivered
+                      </button>
                     )}
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
           ))}
         </div>
       )}

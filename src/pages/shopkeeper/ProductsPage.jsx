@@ -2,20 +2,17 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit3, Trash2, Package, Search, ToggleLeft, ToggleRight, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatPrice } from '../../lib/utils';
 import { CATEGORIES, UNITS } from '../../lib/constants';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import Badge from '../../components/ui/Badge';
 import Spinner from '../../components/ui/Spinner';
-import EmptyState from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
 
 const emptyProduct = { name: '', description: '', price: '', category_id: '', unit: 'piece', in_stock: true, image_url: '' };
 
 export default function ProductsPage() {
   const { shop } = useAuth();
+  const { isDark } = useTheme();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -24,6 +21,8 @@ export default function ProductsPage() {
   const [form, setForm] = useState({ ...emptyProduct });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const c = (light, dark) => isDark ? dark : light;
 
   useEffect(() => { if (shop) fetchProducts(); }, [shop]);
 
@@ -89,93 +88,119 @@ export default function ProductsPage() {
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
+  const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.1)')}`, background: c('white', 'rgba(255,255,255,0.05)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontSize: '13px', fontWeight: 600, color: c('#334155', '#CBD5E1'), marginBottom: '6px' };
+
   if (loading) return <Spinner />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-6">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px 100px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-dark-900 dark:text-white">Products 📦</h1>
-          <p className="text-dark-500 text-sm">{products.length} products</p>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: c('#0F172A', 'white'), margin: '0 0 4px' }}>Products 📦</h1>
+          <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>{products.length} products</p>
         </div>
-        <Button icon={Plus} onClick={openAdd}>Add Product</Button>
+        <button onClick={openAdd} style={{ padding: '10px 16px', borderRadius: '12px', background: 'linear-gradient(135deg, #6C63FF, #5B52E5)', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(108,99,255,0.3)' }}>
+          <Plus size={18} /> Add Product
+        </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark-400" />
+      <div style={{ position: 'relative', marginBottom: '24px' }}>
+        <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
         <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-white dark:bg-dark-800 pl-10 pr-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white" />
+          style={{ width: '100%', padding: '14px 16px 14px 44px', borderRadius: '14px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, background: c('white', 'rgba(255,255,255,0.03)'), color: c('#0F172A', 'white'), fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Package} title="No products" description="Add your first product to start selling!"
-          action={<Button icon={Plus} onClick={openAdd}>Add Product</Button>} />
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: c('white', 'rgba(255,255,255,0.03)'), borderRadius: '20px', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}` }}>
+          <Package size={48} color="#6C63FF" style={{ margin: '0 auto 16px', opacity: 0.8 }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: c('#1E293B', 'white'), margin: '0 0 8px' }}>No products</h3>
+          <p style={{ color: '#64748B', fontSize: '14px', margin: '0 0 20px' }}>Add your first product to start selling!</p>
+          <button onClick={openAdd} style={{ padding: '10px 20px', borderRadius: '12px', background: '#6C63FF', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}>
+            + Add Product
+          </button>
+        </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((product, i) => (
-            <Card key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
-              <div className="h-36 -mx-5 -mt-5 mb-3 rounded-t-2xl overflow-hidden bg-dark-100 dark:bg-dark-700 relative">
-                {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> :
-                  <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>}
-                {!product.in_stock && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><span className="text-white font-bold text-sm">Out of Stock</span></div>}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+          {filtered.map((product) => (
+            <div key={product.id} style={{ borderRadius: '16px', overflow: 'hidden', border: `1px solid ${c('#E2E8F0', 'rgba(255,255,255,0.08)')}`, background: c('white', 'rgba(255,255,255,0.03)') }}>
+              <div style={{ height: '160px', position: 'relative', background: c('#F1F5F9', '#1E293B') }}>
+                {product.image_url ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>📦</div>}
+                {!product.in_stock && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: 'white', fontWeight: 800, fontSize: '14px' }}>Out of Stock</span></div>}
               </div>
-              <h3 className="font-semibold text-dark-900 dark:text-white text-sm">{product.name}</h3>
-              <div className="flex items-center justify-between mt-2">
-                <span className="font-bold text-primary-500">{formatPrice(product.price)}<span className="text-dark-400 text-xs font-normal">/{product.unit}</span></span>
-                <Badge status={product.in_stock ? 'in-stock' : 'out-of-stock'} dot>{product.in_stock ? 'In Stock' : 'Out'}</Badge>
+              
+              <div style={{ padding: '16px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: c('#0F172A', 'white'), margin: '0 0 8px' }}>{product.name}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span style={{ fontWeight: 800, color: '#6C63FF', fontSize: '15px' }}>{formatPrice(product.price)}<span style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 500 }}>/{product.unit}</span></span>
+                  <span style={{ padding: '4px 8px', borderRadius: '100px', fontSize: '11px', fontWeight: 700, background: product.in_stock ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: product.in_stock ? '#10B981' : '#EF4444' }}>
+                    {product.in_stock ? '● In Stock' : '● Out'}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '8px', borderTop: `1px solid ${c('#F1F5F9', 'rgba(255,255,255,0.05)')}`, paddingTop: '16px' }}>
+                  <button onClick={() => openEdit(product)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '10px', background: c('#F1F5F9', 'rgba(255,255,255,0.06)'), color: c('#334155', '#CBD5E1'), fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                    <Edit3 size={14} /> Edit
+                  </button>
+                  <button onClick={() => toggleStock(product)} style={{ padding: '8px', borderRadius: '10px', background: c('#F1F5F9', 'rgba(255,255,255,0.06)'), border: 'none', cursor: 'pointer' }}>
+                    {product.in_stock ? <ToggleRight size={18} color="#10B981" /> : <ToggleLeft size={18} color="#94A3B8" />}
+                  </button>
+                  <button onClick={() => handleDelete(product.id)} style={{ padding: '8px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', marginLeft: 'auto' }}>
+                    <Trash2 size={16} color="#EF4444" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2 mt-3 pt-3 border-t border-dark-100 dark:border-dark-700">
-                <Button size="sm" variant="ghost" icon={Edit3} onClick={() => openEdit(product)}>Edit</Button>
-                <button onClick={() => toggleStock(product)} className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-700 cursor-pointer">
-                  {product.in_stock ? <ToggleRight size={18} className="text-success-500" /> : <ToggleLeft size={18} className="text-dark-400" />}
-                </button>
-                <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg hover:bg-accent-50 dark:hover:bg-accent-900/20 cursor-pointer ml-auto">
-                  <Trash2 size={16} className="text-accent-500" />
-                </button>
-              </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editingProduct ? 'Edit Product' : 'Add Product'} size="md">
-        <div className="space-y-4">
-          <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Product Name *</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Amul Milk 500ml"
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white" /></div>
-          <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Description</label>
-            <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief description"
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Price (₹) *</label>
-              <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} placeholder="0"
-                className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white" /></div>
-            <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Unit</label>
-              <select value={form.unit} onChange={e => setForm(p => ({ ...p, unit: e.target.value }))}
-                className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white">
-                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select></div>
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }} onClick={() => setModal(false)}>
+          <div style={{ background: c('white', '#0F172A'), borderRadius: '24px', padding: '32px', maxWidth: '500px', width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: c('#0F172A', 'white'), marginBottom: '24px' }}>{editingProduct ? 'Edit Product' : 'Add Product'}</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div><label style={labelStyle}>Product Name *</label><input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Amul Milk 500ml" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Description</label><input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief description" style={inputStyle} /></div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ flex: 1 }}><label style={labelStyle}>Price (₹) *</label><input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} placeholder="0" style={inputStyle} /></div>
+                <div style={{ flex: 1 }}><label style={labelStyle}>Unit</label>
+                  <select value={form.unit} onChange={e => setForm(p => ({ ...p, unit: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div><label style={labelStyle}>Category</label>
+                <select value={form.category_id} onChange={e => setForm(p => ({ ...p, category_id: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="">Select category</option>
+                  {CATEGORIES.map(cat => <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>)}
+                </select>
+              </div>
+              <div><label style={labelStyle}>Product Image</label>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px', border: `1px dashed ${c('#CBD5E1', '#475569')}`, cursor: 'pointer', background: c('#F8FAFC', 'rgba(255,255,255,0.02)') }}>
+                    <Upload size={16} color="#64748B" />
+                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>{uploading ? 'Uploading...' : 'Upload Image'}</span>
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && uploadProductImage(e.target.files[0])} />
+                  </label>
+                  {form.image_url && <img src={form.image_url} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover' }} />}
+                </div>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', marginTop: '8px' }}>
+                <input type="checkbox" checked={form.in_stock} onChange={e => setForm(p => ({ ...p, in_stock: e.target.checked }))} style={{ width: '20px', height: '20px', accentColor: '#6C63FF' }} />
+                <span style={{ fontSize: '14px', color: c('#334155', '#CBD5E1'), fontWeight: 600 }}>Item is in stock</span>
+              </label>
+              
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button onClick={() => setModal(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px', background: c('#F1F5F9', 'rgba(255,255,255,0.05)'), color: c('#475569', '#CBD5E1'), fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer' }}>Cancel</button>
+                <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: '14px', borderRadius: '12px', background: '#6C63FF', color: 'white', fontWeight: 700, fontSize: '15px', border: 'none', cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: '0 4px 12px rgba(108,99,255,0.3)' }}>{saving ? '⏳ Saving...' : (editingProduct ? 'Save Changes' : 'Add Product')}</button>
+              </div>
+            </div>
           </div>
-          <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Category</label>
-            <select value={form.category_id} onChange={e => setForm(p => ({ ...p, category_id: e.target.value }))}
-              className="w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-dark-50 dark:bg-dark-900 px-4 py-3 text-sm outline-none focus:border-primary-500 dark:text-white">
-              <option value="">Select category</option>
-              {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-            </select></div>
-          <div><label className="text-sm font-medium text-dark-700 dark:text-dark-300 block mb-1">Product Image</label>
-            <div className="flex gap-3 items-center">
-              <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-dark-300 dark:border-dark-600 cursor-pointer hover:border-primary-500 transition-colors">
-                <Upload size={16} className="text-dark-400" /><span className="text-sm text-dark-500">{uploading ? 'Uploading...' : 'Upload'}</span>
-                <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files[0] && uploadProductImage(e.target.files[0])} /></label>
-              {form.image_url && <img src={form.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />}
-            </div></div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.in_stock} onChange={e => setForm(p => ({ ...p, in_stock: e.target.checked }))} className="w-5 h-5 rounded accent-primary-500" />
-            <span className="text-sm text-dark-700 dark:text-dark-300">In Stock</span></label>
-          <Button onClick={handleSave} loading={saving} className="w-full">{editingProduct ? 'Save Changes' : 'Add Product'}</Button>
         </div>
-      </Modal>
+      )}
     </div>
   );
 }
